@@ -5,13 +5,24 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
+import com.mat.compass.databinding.FragmentCoordsInputBinding
 
 class CoordsInputFragment : Fragment() {
+
+    private lateinit var binding: FragmentCoordsInputBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_coords_input, container, false)
+    ): View {
+        binding = FragmentCoordsInputBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.bt2.setOnClickListener {
+            findNavController().navigate(R.id.action_coordsInputFragment_to_compassFragment)
+        }
     }
 }
