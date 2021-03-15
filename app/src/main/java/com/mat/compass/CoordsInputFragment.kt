@@ -46,6 +46,7 @@ class CoordsInputFragment : Fragment(), OnMapReadyCallback {
             val zoom = map.cameraPosition.zoom
             val lat = it.latitude
             val lon = it.longitude
+
             Log.i("map onclick", "$zoom $lat $lon")
             Toast.makeText(requireActivity(), "saving destination", Toast.LENGTH_SHORT).show()
             findNavController().navigate(R.id.action_coordsInputFragment_to_compassFragment)
