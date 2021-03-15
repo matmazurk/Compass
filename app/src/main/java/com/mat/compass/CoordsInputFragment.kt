@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.*
 import com.mat.compass.databinding.FragmentCoordsInputBinding
@@ -13,7 +14,6 @@ import com.mat.compass.databinding.FragmentCoordsInputBinding
 class CoordsInputFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var binding: FragmentCoordsInputBinding
-    private lateinit var mapView: MapView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -28,6 +28,11 @@ class CoordsInputFragment : Fragment(), OnMapReadyCallback {
         return binding.root
     }
 
+    override fun onResume() {
+        super.onResume()
+        binding.mapView.onResume()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.bt2.setOnClickListener {
             findNavController().navigate(R.id.action_coordsInputFragment_to_compassFragment)
@@ -35,6 +40,15 @@ class CoordsInputFragment : Fragment(), OnMapReadyCallback {
     }
 
     override fun onMapReady(map: GoogleMap?) {
-        Log.i("map", "ready")
+        map ?: return
+        Toast.makeText(requireActivity(), "select destination", Toast.LENGTH_SHORT).show()
+        map.setOnMapClickListener {
+            val zoom = map.cameraPosition.zoom
+            val lat = it.latitude
+            val lon = it.longitude
+            Log.i("map onclick", "$zoom $lat $lon")
+            Toast.makeText(requireActivity(), "saving destination", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(R.id.action_coordsInputFragment_to_compassFragment)
+        }
     }
 }
