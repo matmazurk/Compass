@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/compassFragment">
+
+    <fragment
+        android:id="@+id/compassFragment"
+        android:name="com.mat.compass.CompassFragment"
+        android:label="fragment_compass"
+        tools:layout="@layout/fragment_compass" >
+        <action
+            android:id="@+id/action_compassFragment_to_coordsInputFragment"
+            app:destination="@id/coordsInputFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/coordsInputFragment"
+        android:name="com.mat.compass.CoordsInputFragment"
+        android:label="fragment_coords_input"
+        tools:layout="@layout/fragment_coords_input" >
+        <action
+            android:id="@+id/action_coordsInputFragment_to_compassFragment"
+            app:destination="@id/compassFragment" />
+    </fragment>
+</navigation>
