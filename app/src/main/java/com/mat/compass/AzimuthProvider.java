@@ -5,31 +5,32 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.SystemClock;
 import android.view.Surface;
 import android.view.WindowManager;
-
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 public class AzimuthProvider implements SensorEventListener {
 
-    private final WindowManager windowManager;
+    private static final int COMPASS_UPDATE_RATE_MS = 100;
+    private long compassUpdateNextTimestamp;
+
+    private WindowManager windowManager;
     private final float[] rotationMatrix = new float[9];
-    private float[] rotationVectorValue;
     private final float[] truncatedRotationVectorValue = new float[4];
     private final SensorManager sensorManager;
     private final Sensor sensor;
-    private final MutableLiveData<Double> mAzimuth = new MutableLiveData<>(0.0);
+    private final MutableLiveData<Float> mAzimuth = new MutableLiveData<>(0f);
     private final MutableLiveData<Integer> mAccuracy = new MutableLiveData<>(0);
 
-    AzimuthProvider(Context context, WindowManager windowManager) {
-        this.windowManager = windowManager;
+    AzimuthProvider(Context context) {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
     }
 
-    public LiveData<Double> getAzimuth() {
+    public LiveData<Float> getAzimuth() {
         return mAzimuth;
     }
 
@@ -37,7 +38,8 @@ public class AzimuthProvider implements SensorEventListener {
         return mAccuracy;
     }
 
-    public void startMeasuring() {
+    public void startMeasuring(WindowManager windowManager) {
+        this.windowManager = windowManager;
         sensorManager.registerListener(
                 this,
                 sensor,
@@ -51,53 +53,60 @@ public class AzimuthProvider implements SensorEventListener {
     @SuppressWarnings("SuspiciousNameCombination")
     @Override
     public void onSensorChanged(SensorEvent event) {
+        long currentTime = SystemClock.elapsedRealtime();
+        if (currentTime < compassUpdateNextTimestamp) {
+            return;
+        }
         if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
-            rotationVectorValue = getRotationVectorFromSensorEvent(event);
-        }
+            float[] rotationVectorValue = getRotationVectorFromSensorEvent(event);
 
-        SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVectorValue);
 
-        final int worldAxisForDeviceAxisX;
-        final int worldAxisForDeviceAxisY;
+            SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVectorValue);
 
-        // Remap the axes as if the device screen was the instrument panel,
-        // and adjust the rotation matrix for the device orientation.
-        switch (windowManager.getDefaultDisplay().getRotation()) {
-            case Surface.ROTATION_90:
-                worldAxisForDeviceAxisX = SensorManager.AXIS_Z;
-                worldAxisForDeviceAxisY = SensorManager.AXIS_MINUS_X;
-                break;
-            case Surface.ROTATION_180:
-                worldAxisForDeviceAxisX = SensorManager.AXIS_MINUS_X;
-                worldAxisForDeviceAxisY = SensorManager.AXIS_MINUS_Z;
-                break;
-            case Surface.ROTATION_270:
-                worldAxisForDeviceAxisX = SensorManager.AXIS_MINUS_Z;
-                worldAxisForDeviceAxisY = SensorManager.AXIS_X;
-                break;
-            case Surface.ROTATION_0:
-            default:
-                worldAxisForDeviceAxisX = SensorManager.AXIS_X;
-                worldAxisForDeviceAxisY = SensorManager.AXIS_Z;
-                break;
-        }
+            final int worldAxisForDeviceAxisX;
+            final int worldAxisForDeviceAxisY;
 
-        float[] adjustedRotationMatrix = new float[9];
-        SensorManager.remapCoordinateSystem(rotationMatrix, worldAxisForDeviceAxisX,
-                worldAxisForDeviceAxisY, adjustedRotationMatrix);
+            // Remap the axes as if the device screen was the instrument panel,
+            // and adjust the rotation matrix for the device orientation.
+            switch (windowManager.getDefaultDisplay().getRotation()) {
+                case Surface.ROTATION_90:
+                    worldAxisForDeviceAxisX = SensorManager.AXIS_Z;
+                    worldAxisForDeviceAxisY = SensorManager.AXIS_MINUS_X;
+                    break;
+                case Surface.ROTATION_180:
+                    worldAxisForDeviceAxisX = SensorManager.AXIS_MINUS_X;
+                    worldAxisForDeviceAxisY = SensorManager.AXIS_MINUS_Z;
+                    break;
+                case Surface.ROTATION_270:
+                    worldAxisForDeviceAxisX = SensorManager.AXIS_MINUS_Z;
+                    worldAxisForDeviceAxisY = SensorManager.AXIS_X;
+                    break;
+                case Surface.ROTATION_0:
+                default:
+                    worldAxisForDeviceAxisX = SensorManager.AXIS_X;
+                    worldAxisForDeviceAxisY = SensorManager.AXIS_Z;
+                    break;
+            }
 
-        // Transform rotation matrix into azimuth/pitch/roll
-        float[] orientation = new float[3];
-        SensorManager.getOrientation(adjustedRotationMatrix, orientation);
+            float[] adjustedRotationMatrix = new float[9];
+            SensorManager.remapCoordinateSystem(rotationMatrix, worldAxisForDeviceAxisX,
+                    worldAxisForDeviceAxisY, adjustedRotationMatrix);
 
-        // The x-axis is all we care about here.
-        mAzimuth.postValue(Math.toDegrees(orientation[0]));
+            // Transform rotation matrix into azimuth/pitch/roll
+            float[] orientation = new float[3];
+            SensorManager.getOrientation(adjustedRotationMatrix, orientation);
+//            SensorManager.getOrientation(rotationMatrix, orientation);
+
+            // The x-axis is all we care about here.
+            mAzimuth.postValue((float) Math.toDegrees(orientation[2]));
+            compassUpdateNextTimestamp = currentTime + COMPASS_UPDATE_RATE_MS;
 
 //        SensorManager.getRotationMatrixFromVector(rotationVector, rotationalReading);
 //
 //        SensorManager.getOrientation(rotationVector, orientationAngles);
 //
 //        mAzimuth.postValue(-1 * orientationAngles[0] * 180 / Math.PI);
+        }
     }
 
     @Override

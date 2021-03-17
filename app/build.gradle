@@ -58,4 +58,9 @@ dependencies {
 
     //Fused location provider
     implementation "com.google.android.gms:play-services-location:18.0.0"
+
+    //Koin
+    implementation "org.koin:koin-android:$koin_version"
+    implementation "org.koin:koin-android-viewmodel:$koin_version"
+
 }

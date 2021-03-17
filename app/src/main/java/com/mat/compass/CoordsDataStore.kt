@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.take
 
-class CoordsDataStore(private val context: Context) {
+class CoordsDataStore(context: Context) {
     private val coordStore: DataStore<Preferences> = context.createDataStore(name = "coords")
 
     private val latPreferencesKey = doublePreferencesKey("lat")
@@ -19,19 +19,16 @@ class CoordsDataStore(private val context: Context) {
         .map { preferences ->
             preferences[latPreferencesKey]
         }
-        .take(1)
 
     val lonFlow: Flow<Double?> = coordStore.data
         .map { preferences ->
             preferences[lonPreferencesKey]
         }
-        .take(1)
 
     val zoomFlow: Flow<Float?> = coordStore.data
         .map { preferences ->
             preferences[zoomPreferencesKey]
         }
-        .take(1)
 
     suspend fun saveLatitude(lat: Double) {
         coordStore.edit { preferences ->

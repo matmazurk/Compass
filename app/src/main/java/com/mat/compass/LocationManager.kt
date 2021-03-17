@@ -1,28 +1,20 @@
 package com.mat.compass
 
-import android.Manifest
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.location.Location
 import android.os.Looper
 import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.*
 import java.util.concurrent.TimeUnit
 
-class LocationManager(private val context: Context) {
+class LocationManager(context: Context) {
 
-    val receivingLocationUpdates: LiveData<Boolean> get() = _receivingLocationUpdates
     val newLocation: LiveData<Location> get() = _newLocation
-    val lastLocation: LiveData<Location> get() = _lastLocation
 
-    private val _lastLocation: MutableLiveData<Location> = MutableLiveData()
     private val _newLocation: MutableLiveData<Location> = MutableLiveData()
-    private val _receivingLocationUpdates: MutableLiveData<Boolean> = MutableLiveData(false)
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
 
@@ -35,7 +27,6 @@ class LocationManager(private val context: Context) {
 
     private val locationCallback = object: LocationCallback() {
         override fun onLocationResult(location: LocationResult) {
-
             Log.i("new location", "${location.lastLocation.latitude} ${location.lastLocation.longitude}")
             _newLocation.postValue(location.lastLocation)
         }
@@ -46,22 +37,18 @@ class LocationManager(private val context: Context) {
     fun startLocationUpdates() {
 
 //        if (!context.hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) return
-            fusedLocationClient.lastLocation.addOnSuccessListener {
-                Log.i("last location listener", "get")
-                _lastLocation.postValue(it)
-            }
+        fusedLocationClient.lastLocation.addOnSuccessListener {
+            _newLocation.postValue(it)
+        }
         try {
-            _receivingLocationUpdates.value = true
             fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
         } catch (permissionRevoked: SecurityException) {
-            _receivingLocationUpdates.value = false
             throw permissionRevoked
         }
     }
 
     @MainThread
     fun stopLocationUpdates() {
-        _receivingLocationUpdates.value = false
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
