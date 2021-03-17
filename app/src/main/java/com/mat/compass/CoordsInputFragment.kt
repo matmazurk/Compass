@@ -2,27 +2,29 @@ package com.mat.compass
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.google.android.gms.maps.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.MapsInitializer
+import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.snackbar.Snackbar
 import com.mat.compass.databinding.FragmentCoordsInputBinding
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 
 class CoordsInputFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var binding: FragmentCoordsInputBinding
-    private lateinit var coordDataStore: CoordsDataStore
+    private val coordDataStore: CoordsDataStore by inject()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,7 +37,6 @@ class CoordsInputFragment : Fragment(), OnMapReadyCallback {
         mapView.onResume()
         MapsInitializer.initialize(requireActivity())
         mapView.getMapAsync(this)
-        coordDataStore = CoordsDataStore(requireActivity())
         return binding.root
     }
 
@@ -59,7 +60,6 @@ class CoordsInputFragment : Fragment(), OnMapReadyCallback {
                     addMarker(
                         MarkerOptions()
                             .position(savedLatLng)
-                            .title("Destination")
                     )
                     moveCamera(
                         CameraUpdateFactory.newLatLngZoom(
@@ -70,19 +70,29 @@ class CoordsInputFragment : Fragment(), OnMapReadyCallback {
                 }
             }
         }
-        Toast.makeText(requireActivity(), "select destination", Toast.LENGTH_SHORT).show()
+        Snackbar
+            .make(
+                binding.mapView,
+                getString(R.string.select_destination),
+                Snackbar.LENGTH_SHORT)
+            .show()
         map.setOnMapClickListener {
             val zoom = map.cameraPosition.zoom
             val lat = it.latitude
             val lon = it.longitude
 
             lifecycleScope.launch {
-                Toast.makeText(requireActivity(), "saving destination", Toast.LENGTH_SHORT).show()
                 with(coordDataStore) {
                     saveLatitude(lat)
                     saveLongitude(lon)
                     saveZoom(zoom)
                 }
+                Snackbar
+                    .make(
+                        binding.mapView,
+                        getString(R.string.destination_saved),
+                        Snackbar.LENGTH_SHORT)
+                    .show()
                 findNavController().navigate(R.id.action_coordsInputFragment_to_compassFragment)
             }
         }

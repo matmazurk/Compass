@@ -100,7 +100,6 @@ public class AzimuthProvider implements SensorEventListener {
             SensorManager.getOrientation(adjustedRotationMatrix, orientation);
 
             // The x-axis is all we care about here.
-            Log.i("other angle", Math.toDegrees(orientation[0]) + "");
             mAzimuth.postValue((float) Math.toDegrees(orientation[2] + orientation[0]));
             compassUpdateNextTimestamp = currentTime + COMPASS_UPDATE_RATE_MS;
         }

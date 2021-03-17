@@ -1,5 +1,6 @@
 package com.mat.compass
 
+import android.Manifest
 import android.content.Context
 import android.location.Location
 import android.os.Looper
@@ -10,7 +11,7 @@ import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.location.*
 import java.util.concurrent.TimeUnit
 
-class LocationManager(context: Context) {
+class LocationManager(private val context: Context) {
 
     val newLocation: LiveData<Location> get() = _newLocation
 
@@ -36,7 +37,7 @@ class LocationManager(context: Context) {
     @MainThread
     fun startLocationUpdates() {
 
-//        if (!context.hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) return
+        if (!context.hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) return
         fusedLocationClient.lastLocation.addOnSuccessListener {
             _newLocation.postValue(it)
         }

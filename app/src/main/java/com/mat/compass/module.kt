@@ -7,7 +7,8 @@ import org.koin.dsl.module
 val appModule = module {
     single { LocationManager(androidContext())}
     single { AzimuthProvider(androidContext()) }
+    single { CoordsDataStore(androidContext()) }
     single { Repository(get(), get()) }
 
-    viewModel { CompassViewModel(get()) }
+    viewModel { CompassViewModel(get(), get()) }
 }
