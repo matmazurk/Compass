@@ -2,6 +2,7 @@ package com.mat.compass
 
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,13 +13,17 @@ import com.mat.compass.databinding.FragmentCompassBinding
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.android.viewmodel.ext.android.viewModel
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 class CompassFragment : Fragment() {
 
     private val viewModel: CompassViewModel by viewModel()
     private lateinit var binding: FragmentCompassBinding
     private lateinit var coordsDataStore: CoordsDataStore
-    private lateinit var savedLocation: Location
+    private lateinit var destination: Location
+    private lateinit var currentLocation: Location
     private var previousCompassBearing = -1f
 
 
@@ -28,12 +33,13 @@ class CompassFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentCompassBinding.inflate(inflater, container, false)
-        observeAzimuth()
-        observeLocation()
+        observeAzimuthUpdates()
+        observeLocationUpdates()
         return binding.root
     }
 
@@ -45,7 +51,7 @@ class CompassFragment : Fragment() {
             val lat = coordsDataStore.latFlow.first()
             val lon = coordsDataStore.lonFlow.first()
             if (lat != null && lon != null) {
-                savedLocation = Location("").apply {
+                destination = Location("").apply {
                     latitude = lat
                     longitude = lon
                 }
@@ -65,24 +71,29 @@ class CompassFragment : Fragment() {
         super.onPause()
     }
 
-    private fun observeAzimuth() {
+    private fun observeAzimuthUpdates() {
         viewModel.azimuth.observe(viewLifecycleOwner) { targetCompassBearing ->
             if (previousCompassBearing < 0) {
-                previousCompassBearing = targetCompassBearing.toFloat()
+                previousCompassBearing = targetCompassBearing
             }
             val normalizedBearing: Float = shortestRotation(
-                targetCompassBearing.toFloat(),
+                targetCompassBearing,
                 previousCompassBearing
             )
-            previousCompassBearing = targetCompassBearing.toFloat()
+            previousCompassBearing = targetCompassBearing
             binding.ivCompass.animate().rotation(-1 * normalizedBearing + 45F)
+            if (this::destination.isInitialized && this::currentLocation.isInitialized) {
+                val angle = currentLocation.angleBetween(destination).toFloat()
+                rotateArrow(angle - normalizedBearing)
+            }
         }
     }
 
-    private fun observeLocation() {
+    private fun observeLocationUpdates() {
         viewModel.newLocation.observe(viewLifecycleOwner) { newLocation ->
-            if (this::savedLocation.isInitialized) {
-                val distance = newLocation.distanceTo(savedLocation).toInt()
+            if (this::destination.isInitialized) {
+                currentLocation = newLocation
+                val distance = currentLocation.distanceTo(destination).toInt()
                 binding.mtv.text = getString(R.string.distance_meters, distance)
             } else {
                 binding.mtv.text = getString(R.string.distance_unknown)
@@ -99,6 +110,18 @@ class CompassFragment : Fragment() {
             rotation -= 360f
         }
         return rotation
+    }
+
+    private fun rotateArrow(angle: Float) {
+        val rads = angle * PI / 180
+        val radius = 700F
+        val translY = -1 * radius * cos(rads)
+        val translX = radius * sin(rads)
+        binding.arrow.animate().apply {
+            translationY(translY.toFloat())
+            translationX(translX.toFloat())
+            rotation(angle)
+        }
     }
 
 }

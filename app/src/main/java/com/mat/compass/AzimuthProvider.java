@@ -6,12 +6,16 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.Surface;
 import android.view.WindowManager;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+/*
+    source: https://stackoverflow.com/a/52997851/9333324
+ */
 public class AzimuthProvider implements SensorEventListener {
 
     private static final int COMPASS_UPDATE_RATE_MS = 100;
@@ -60,7 +64,6 @@ public class AzimuthProvider implements SensorEventListener {
         if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
             float[] rotationVectorValue = getRotationVectorFromSensorEvent(event);
 
-
             SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVectorValue);
 
             final int worldAxisForDeviceAxisX;
@@ -95,17 +98,11 @@ public class AzimuthProvider implements SensorEventListener {
             // Transform rotation matrix into azimuth/pitch/roll
             float[] orientation = new float[3];
             SensorManager.getOrientation(adjustedRotationMatrix, orientation);
-//            SensorManager.getOrientation(rotationMatrix, orientation);
 
             // The x-axis is all we care about here.
-            mAzimuth.postValue((float) Math.toDegrees(orientation[2]));
+            Log.i("other angle", Math.toDegrees(orientation[0]) + "");
+            mAzimuth.postValue((float) Math.toDegrees(orientation[2] + orientation[0]));
             compassUpdateNextTimestamp = currentTime + COMPASS_UPDATE_RATE_MS;
-
-//        SensorManager.getRotationMatrixFromVector(rotationVector, rotationalReading);
-//
-//        SensorManager.getOrientation(rotationVector, orientationAngles);
-//
-//        mAzimuth.postValue(-1 * orientationAngles[0] * 180 / Math.PI);
         }
     }
 

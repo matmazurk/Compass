@@ -1,15 +1,20 @@
 package com.mat.compass
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.mat.compass.databinding.FragmentCoordsInputBinding
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -34,22 +39,36 @@ class CoordsInputFragment : Fragment(), OnMapReadyCallback {
         return binding.root
     }
 
+    @SuppressLint("MissingPermission")
     override fun onMapReady(map: GoogleMap?) {
         map ?: return
+        if (requireActivity().hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
+            map.isMyLocationEnabled = true
+        }
         map.uiSettings.apply {
             isZoomControlsEnabled = true
             isCompassEnabled = true
+            isMyLocationButtonEnabled = true
         }
         lifecycleScope.launch {
-            map.moveCamera(
-                CameraUpdateFactory.newLatLngZoom(
-                    LatLng(
-                        coordDataStore.latFlow.first() ?: 0.0,
-                        coordDataStore.lonFlow.first() ?: 0.0
-                    ),
-                    coordDataStore.zoomFlow.first() ?: 0F
-                )
-            )
+            val savedLat = coordDataStore.latFlow.first()
+            val savedLng = coordDataStore.lonFlow.first()
+            if (savedLat != null && savedLng != null) {
+                val savedLatLng = LatLng(savedLat, savedLng)
+                map.apply {
+                    addMarker(
+                        MarkerOptions()
+                            .position(savedLatLng)
+                            .title("Destination")
+                    )
+                    moveCamera(
+                        CameraUpdateFactory.newLatLngZoom(
+                            savedLatLng,
+                            coordDataStore.zoomFlow.first() ?: 0F
+                        )
+                    )
+                }
+            }
         }
         Toast.makeText(requireActivity(), "select destination", Toast.LENGTH_SHORT).show()
         map.setOnMapClickListener {
