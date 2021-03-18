@@ -67,4 +67,6 @@ dependencies {
     //Dexter
     implementation 'com.karumi:dexter:6.2.2'
 
+    //Material dialogs
+    implementation 'com.afollestad.material-dialogs:core:3.3.0'
 }

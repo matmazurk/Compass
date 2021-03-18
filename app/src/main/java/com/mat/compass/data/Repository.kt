@@ -1,4 +1,4 @@
-package com.mat.compass
+package com.mat.compass.data
 
 import android.view.WindowManager
 import androidx.lifecycle.LiveData

@@ -1,4 +1,4 @@
-package com.mat.compass;
+package com.mat.compass.data;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -14,6 +14,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 /*
+    class delivers Z and Y axes angle changes in COMPASS_UPDATE_RATE_MS interval
+    results are remapped as if the device screen was instrument panel
     source: https://stackoverflow.com/a/52997851/9333324
  */
 public class AzimuthProvider implements SensorEventListener {
@@ -29,7 +31,7 @@ public class AzimuthProvider implements SensorEventListener {
     private final MutableLiveData<Float> mAzimuth = new MutableLiveData<>(0f);
     private final MutableLiveData<Integer> mAccuracy = new MutableLiveData<>(0);
 
-    AzimuthProvider(Context context) {
+    public AzimuthProvider(Context context) {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
     }
@@ -69,8 +71,7 @@ public class AzimuthProvider implements SensorEventListener {
             final int worldAxisForDeviceAxisX;
             final int worldAxisForDeviceAxisY;
 
-            // Remap the axes as if the device screen was the instrument panel,
-            // and adjust the rotation matrix for the device orientation.
+            // Remap the axes
             switch (windowManager.getDefaultDisplay().getRotation()) {
                 case Surface.ROTATION_90:
                     worldAxisForDeviceAxisX = SensorManager.AXIS_Z;

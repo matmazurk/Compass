@@ -8,4 +8,7 @@
     <string name="select_destination">Select your destination</string>
     <string name="destination_saved">Destination saved</string>
     <string name="change_location_permission">Change location permission in app settings</string>
+    <string name="no_gyroscope_title">Gyroscope not found</string>
+    <string name="no_gyroscope_message">Gyroscope is crucial for this app functionality, without it we can\'t perform any actions. The app will now exit.</string>
+    <string name="ok">OK</string>
 </resources>

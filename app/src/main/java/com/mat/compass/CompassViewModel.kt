@@ -3,10 +3,12 @@ package com.mat.compass
 import android.location.Location
 import android.view.WindowManager
 import androidx.lifecycle.*
+import com.mat.compass.data.CoordsDataStore
+import com.mat.compass.data.Repository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 
-class CompassViewModel (
+class CompassViewModel(
     private val repository: Repository,
     private val coordsDataStore: CoordsDataStore,
 ) : ViewModel() {
@@ -31,8 +33,8 @@ class CompassViewModel (
             previousCompassBearing = targetCompassBearing
         }
         val normalizedBearing: Float = shortestRotation(
-                targetCompassBearing,
-                previousCompassBearing
+            targetCompassBearing,
+            previousCompassBearing
         )
         previousCompassBearing = targetCompassBearing
         normalizedBearing
@@ -49,7 +51,7 @@ class CompassViewModel (
     fun loadDestination() =
         viewModelScope.launch {
             val lat = coordsDataStore.latFlow.first()
-            val lon = coordsDataStore.lonFlow.first()
+            val lon = coordsDataStore.lngFlow.first()
             if (lat != null && lon != null) {
                 destination = Location("").apply {
                     latitude = lat

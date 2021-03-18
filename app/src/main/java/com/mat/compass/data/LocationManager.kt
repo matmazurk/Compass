@@ -1,14 +1,14 @@
-package com.mat.compass
+package com.mat.compass.data
 
 import android.Manifest
 import android.content.Context
 import android.location.Location
 import android.os.Looper
-import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.location.*
+import com.mat.compass.hasPermission
 import java.util.concurrent.TimeUnit
 
 class LocationManager(private val context: Context) {
@@ -26,9 +26,8 @@ class LocationManager(private val context: Context) {
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
 
-    private val locationCallback = object: LocationCallback() {
+    private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(location: LocationResult) {
-            Log.i("new location", "${location.lastLocation.latitude} ${location.lastLocation.longitude}")
             _newLocation.postValue(location.lastLocation)
         }
     }
@@ -38,8 +37,8 @@ class LocationManager(private val context: Context) {
     fun startLocationUpdates() {
 
         if (!context.hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) return
-        fusedLocationClient.lastLocation.addOnSuccessListener {
-            _newLocation.postValue(it)
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            _newLocation.postValue(location)
         }
         try {
             fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
