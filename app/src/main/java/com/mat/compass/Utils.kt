@@ -11,6 +11,10 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
+/*
+    returns counterclockwise angle between meridian passing through this location and line passing through
+    this and other locations
+ */
 fun Location.angleBetween(other: Location): Double {
     val dLon = Math.toRadians(this.longitude - other.longitude)
     val thisLatDegrees = Math.toRadians(this.latitude)

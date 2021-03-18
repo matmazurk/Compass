@@ -5,6 +5,7 @@ buildscript {
         nav_version = "2.3.4"
         koin_version = '2.2.2'
         lifecycle_version = "2.3.0"
+        mockk_version = "1.10.6"
     }
     repositories {
         google()
