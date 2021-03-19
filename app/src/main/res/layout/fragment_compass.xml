@@ -30,32 +30,34 @@
         app:layout_constraintBottom_toBottomOf="parent">
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/mtv"
-            tools:text="@string/distance_unknown"
-            android:textColor="@color/black"
-            android:textSize="20sp"
+            android:id="@+id/mtv_distance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
+            android:fontFamily="@font/raleway"
+            android:textColor="@color/black"
+            android:textSize="20sp"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"/>
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="@string/distance_unknown" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/bt"
+            android:id="@+id/bt_set_destination"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             android:textColor="@color/button_text_color"
             app:strokeColor="@color/button_stroke_color"
-            app:layout_constraintTop_toBottomOf="@id/mtv"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            app:layout_constraintTop_toBottomOf="@id/mtv_distance"
+            android:layout_marginTop="5dp"
             android:text="@string/destination"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ImageView
-        android:id="@+id/arrow"
+        android:id="@+id/iv_destination_pointer"
         android:layout_width="@dimen/destination_pointer_size"
         android:layout_height="@dimen/destination_pointer_size"
         app:layout_constraintTop_toTopOf="parent"

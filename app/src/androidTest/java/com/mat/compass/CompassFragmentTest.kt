@@ -78,6 +78,10 @@ class CompassFragmentTest {
     fun test_enable_gps_button() {
         val distanceMatchingText = InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.distance_unknown)
         distance.postValue(null)
+        /*
+            tricking fragment with gps availability, there is no way to turn off location
+            programmatically on android
+         */
         fragmentScenario.onFragment {
             it.gpsEnabled = false
             it.setupViews()
@@ -103,7 +107,7 @@ class CompassFragmentTest {
             .check(matches(not(isDisplayed())))
         onView(withId(R.id.layout_destination))
             .check(matches(isDisplayed()))
-        onView(withId(R.id.mtv))
+        onView(withId(R.id.mtv_distance))
             .check(matches(withText(distanceMatchingText)))
     }
 
@@ -113,8 +117,8 @@ class CompassFragmentTest {
         anglesToTest.forEach { angle ->
             azimuth.postValue(angle)
             onView(withId(R.id.iv_compass))
-                    .check(matches(isDisplayed()))
-                    .check(matches(rotated(360 + initialCompassRotation - angle)))
+                .check(matches(isDisplayed()))
+                .check(matches(rotated(360 + initialCompassRotation - angle)))
         }
     }
 
@@ -127,9 +131,9 @@ class CompassFragmentTest {
         azimuth.postValue(0f)
         onView(withId(R.id.layout_destination))
             .check(matches(isDisplayed()))
-        onView(withId(R.id.arrow))
+        onView(withId(R.id.iv_destination_pointer))
             .check(matches(isDisplayed()))
-        onView(withId(R.id.mtv))
+        onView(withId(R.id.mtv_distance))
             .check(matches(withText(matchingText)))
     }
 
@@ -139,21 +143,21 @@ class CompassFragmentTest {
         distance.postValue(43)
         anglesToTest.forEach { angle ->
             azimuth.postValue(angle)
-            onView(withId(R.id.arrow))
-                    .check(matches(isDisplayed()))
-                    .check(matches(rotated(-angle)))
+            onView(withId(R.id.iv_destination_pointer))
+                .check(matches(isDisplayed()))
+                .check(matches(rotated(-angle)))
         }
     }
 
     private fun assertLocationTurnedOn() {
         if (!ApplicationProvider.getApplicationContext<App>().isGpsEnabled()) {
             onView(withId(R.id.bt_enable_gps))
-                    .check(matches(isDisplayed()))
-                    .perform(click())
+                .check(matches(isDisplayed()))
+                .perform(click())
 
             val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
             val allowGpsBtn = device.findObject(
-                    By.res("android:id/button1")
+                By.res("android:id/button1")
             )
             allowGpsBtn?.click()
             onView(isRoot()).perform(waitFor(10))

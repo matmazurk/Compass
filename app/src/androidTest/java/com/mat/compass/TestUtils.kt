@@ -1,6 +1,5 @@
 package com.mat.compass
 
-import android.util.Log
 import android.view.View
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction

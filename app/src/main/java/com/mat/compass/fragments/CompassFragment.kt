@@ -42,6 +42,7 @@ class CompassFragment : Fragment() {
     private val viewModel: CompassViewModel by viewModel()
     private lateinit var binding: FragmentCompassBinding
     private lateinit var gpsSwitchStateReceiver: BroadcastReceiver
+    // visible for testing to trick fragment about gps availability
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     var gpsEnabled = false
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
@@ -59,6 +60,9 @@ class CompassFragment : Fragment() {
         observeAzimuthUpdates()
         observeDistanceChanges()
         observeEnableGpsButton()
+        binding.btSetDestination.setOnClickListener {
+            findNavController().navigate(R.id.action_compassFragment_to_coordsInputFragment)
+        }
         return binding.root
     }
 
@@ -70,12 +74,6 @@ class CompassFragment : Fragment() {
         viewModel.startLocationUpdates()
         viewModel.startMeasuring(requireActivity().windowManager)
         registerGpsSwitchStateReceiver()
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.bt.setOnClickListener {
-            findNavController().navigate(R.id.action_compassFragment_to_coordsInputFragment)
-        }
     }
 
     override fun onPause() {
@@ -98,7 +96,7 @@ class CompassFragment : Fragment() {
                     }
             }
             if (viewModel.destination != null && viewModel.distance.value != null && gpsEnabled) {
-                binding.arrow.visibility = View.VISIBLE
+                binding.ivDestinationPointer.visibility = View.VISIBLE
                 rotateArrow(viewModel.destinationPointerAngle - normalizedBearing)
             }
         }
@@ -106,12 +104,16 @@ class CompassFragment : Fragment() {
 
     private fun observeDistanceChanges() {
         viewModel.distance.observe(viewLifecycleOwner) { distance ->
-            binding.mtv.text =
-                if (distance != null) {
-                    getString(R.string.distance_meters, distance)
-                } else {
-                    getString(R.string.distance_unknown)
-                }
+            viewModel.destination?.let {
+                binding.mtvDistance.text =
+                    if (distance != null) {
+                        getString(R.string.distance_meters, distance)
+                    } else {
+                        getString(R.string.distance_unknown)
+                    }
+            } ?: run {
+                binding.mtvDistance.text = getString(R.string.destination_unknown)
+            }
         }
     }
 
@@ -122,7 +124,7 @@ class CompassFragment : Fragment() {
         val translX = radius * sin(rads)
         destinationPointerIdlingResource.increment()
         if (!destinationPointerIdlingResource.isIdleNow) {
-            binding.arrow.animate()
+            binding.ivDestinationPointer.animate()
                 .apply {
                     translationY(translY.toFloat())
                     translationX(translX.toFloat())
@@ -162,7 +164,7 @@ class CompassFragment : Fragment() {
         } else {
             binding.layoutDestination.visibility = View.GONE
             binding.btEnableGps.visibility = View.VISIBLE
-            binding.arrow.visibility = View.INVISIBLE
+            binding.ivDestinationPointer.visibility = View.INVISIBLE
         }
     }
 

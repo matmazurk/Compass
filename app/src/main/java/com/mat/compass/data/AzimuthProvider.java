@@ -100,7 +100,6 @@ public class AzimuthProvider implements SensorEventListener {
             float[] orientation = new float[3];
             SensorManager.getOrientation(adjustedRotationMatrix, orientation);
 
-            // The x-axis is all we care about here.
             mAzimuth.postValue((float) Math.toDegrees(orientation[2] + orientation[0]));
             compassUpdateNextTimestamp = currentTime + COMPASS_UPDATE_RATE_MS;
         }
@@ -116,11 +115,6 @@ public class AzimuthProvider implements SensorEventListener {
     @NonNull
     private float[] getRotationVectorFromSensorEvent(@NonNull SensorEvent event) {
         if (event.values.length > 4) {
-            // On some Samsung devices SensorManager.getRotationMatrixFromVector
-            // appears to throw an exception if rotation vector has length > 4.
-            // For the purposes of this class the first 4 values of the
-            // rotation vector are sufficient (see crbug.com/335298 for details).
-            // Only affects Android 4.3
             System.arraycopy(event.values, 0, truncatedRotationVectorValue, 0, 4);
             return truncatedRotationVectorValue;
         } else {

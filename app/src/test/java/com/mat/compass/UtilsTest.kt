@@ -21,24 +21,23 @@ class UtilsTest {
         every { secondLocation.longitude } returnsMany listOf(1.0, 0.0, 1.0, -1.0)
 
         firstLocation.angleBetween(secondLocation).assertWithPercentageMargin(
-            360.0 - 45, 1.0
+            360.0 - 45, 10.0
         )
         firstLocation.angleBetween(secondLocation).assertWithPercentageMargin(
-            45.0, 1.0
+            45.0, 10.0
         )
         firstLocation.angleBetween(secondLocation).assertWithPercentageMargin(
-            360.0 - 180, 1.0
+            360.0 - 180, 10.0
         )
         firstLocation.angleBetween(secondLocation).assertWithPercentageMargin(
-            360.0 - 270, 1.0
+            360.0 - 270, 10.0
         )
-
     }
 
     private fun Double.assertWithPercentageMargin(expected: Double, margin: Double) {
         val upperBound = this + this * margin
         val lowerBound = this - this * margin
-        assert(this <= upperBound)
-        assert(this >= lowerBound)
+        assert(expected <= upperBound)
+        assert(expected >= lowerBound)
     }
 }

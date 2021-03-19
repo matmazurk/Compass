@@ -1,11 +1,8 @@
 package com.mat.compass
 
 import android.location.Location
-import android.util.Log
 import android.view.WindowManager
-import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.*
-import androidx.test.espresso.idling.CountingIdlingResource
 import com.mat.compass.data.CoordsDataStore
 import com.mat.compass.data.Repository
 import kotlinx.coroutines.*
@@ -17,14 +14,15 @@ class CompassViewModel(
 ) : ViewModel() {
 
     val azimuth: LiveData<Float> get() = _azimuth
+    val distance: LiveData<Int?> get() = _distance
     var destination: Location? = null
         private set
-    val distance: LiveData<Int?> get() = _distance
     var destinationPointerAngle: Float = 0f
         private set
 
     private var previousCompassBearing = -1f
     private lateinit var currentLocation: Location
+    // must be observed by at least one observator
     private val _distance = Transformations.map(repository.newLocation) { newLocation ->
         newLocation ?: return@map null
         currentLocation = newLocation
