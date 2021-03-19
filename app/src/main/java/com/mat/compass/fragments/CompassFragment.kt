@@ -88,13 +88,15 @@ class CompassFragment : Fragment() {
     private fun observeAzimuthUpdates() {
         viewModel.azimuth.observe(viewLifecycleOwner) { normalizedBearing ->
             compassAnimationIdlingResource.increment()
-            binding.ivCompass.animate()
-                .apply {
-                    rotation(-1 * normalizedBearing + 45F + 360)
-                }
-                .withEndAction {
-                    compassAnimationIdlingResource.decrement()
-                }
+            if (!compassAnimationIdlingResource.isIdleNow) {
+                binding.ivCompass.animate()
+                    .apply {
+                        rotation(-1 * normalizedBearing + 45F + 360)
+                    }
+                    .withEndAction {
+                        compassAnimationIdlingResource.decrement()
+                    }
+            }
             if (viewModel.destination != null && viewModel.distance.value != null && gpsEnabled) {
                 binding.arrow.visibility = View.VISIBLE
                 rotateArrow(viewModel.destinationPointerAngle - normalizedBearing)
@@ -119,15 +121,17 @@ class CompassFragment : Fragment() {
         val translY = -1 * radius * cos(rads)
         val translX = radius * sin(rads)
         destinationPointerIdlingResource.increment()
-        binding.arrow.animate()
-            .apply {
-                translationY(translY.toFloat())
-                translationX(translX.toFloat())
-                rotation(angle)
-            }
-            .withEndAction {
-                destinationPointerIdlingResource.decrement()
-            }
+        if (!destinationPointerIdlingResource.isIdleNow) {
+            binding.arrow.animate()
+                .apply {
+                    translationY(translY.toFloat())
+                    translationX(translX.toFloat())
+                    rotation(angle)
+                }
+                .withEndAction {
+                    destinationPointerIdlingResource.decrement()
+                }
+        }
     }
 
     /*

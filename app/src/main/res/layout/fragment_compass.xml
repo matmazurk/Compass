@@ -46,7 +46,10 @@
             android:layout_height="wrap_content"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
+            android:textColor="@color/button_text_color"
+            app:strokeColor="@color/button_stroke_color"
             app:layout_constraintTop_toBottomOf="@id/mtv"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:text="@string/destination"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -71,6 +74,9 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:textColor="@color/button_text_color"
+        app:strokeColor="@color/button_stroke_color"
         android:layout_marginBottom="50dp"
         android:text="@string/enable_gps"/>
 
