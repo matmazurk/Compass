@@ -1,8 +1,11 @@
 package com.mat.compass
 
 import android.location.Location
+import android.util.Log
 import android.view.WindowManager
+import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.*
+import androidx.test.espresso.idling.CountingIdlingResource
 import com.mat.compass.data.CoordsDataStore
 import com.mat.compass.data.Repository
 import kotlinx.coroutines.*

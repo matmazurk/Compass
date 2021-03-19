@@ -6,6 +6,7 @@ buildscript {
         koin_version = '2.2.2'
         lifecycle_version = "2.3.0"
         mockk_version = "1.10.6"
+        fragment_version = "1.3.1"
     }
     repositories {
         google()

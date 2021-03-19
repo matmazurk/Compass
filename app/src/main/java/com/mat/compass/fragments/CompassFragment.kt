@@ -12,8 +12,10 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.VisibleForTesting
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.test.espresso.idling.CountingIdlingResource
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -40,7 +42,12 @@ class CompassFragment : Fragment() {
     private val viewModel: CompassViewModel by viewModel()
     private lateinit var binding: FragmentCompassBinding
     private lateinit var gpsSwitchStateReceiver: BroadcastReceiver
-    private var gpsEnabled = false
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    var gpsEnabled = false
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    val compassAnimationIdlingResource = CountingIdlingResource("compass")
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    val destinationPointerIdlingResource = CountingIdlingResource("dest pointer")
     private var compassHeight: Int = 0
 
     override fun onCreateView(
@@ -80,7 +87,14 @@ class CompassFragment : Fragment() {
 
     private fun observeAzimuthUpdates() {
         viewModel.azimuth.observe(viewLifecycleOwner) { normalizedBearing ->
-            binding.ivCompass.animate().rotation(-1 * normalizedBearing + 45F)
+            compassAnimationIdlingResource.increment()
+            binding.ivCompass.animate()
+                .apply {
+                    rotation(-1 * normalizedBearing + 45F + 360)
+                }
+                .withEndAction {
+                    compassAnimationIdlingResource.decrement()
+                }
             if (viewModel.destination != null && viewModel.distance.value != null && gpsEnabled) {
                 binding.arrow.visibility = View.VISIBLE
                 rotateArrow(viewModel.destinationPointerAngle - normalizedBearing)
@@ -104,18 +118,24 @@ class CompassFragment : Fragment() {
         val radius = compassHeight / 2 + 120
         val translY = -1 * radius * cos(rads)
         val translX = radius * sin(rads)
-        binding.arrow.animate().apply {
-            translationY(translY.toFloat())
-            translationX(translX.toFloat())
-            rotation(angle)
-        }
+        destinationPointerIdlingResource.increment()
+        binding.arrow.animate()
+            .apply {
+                translationY(translY.toFloat())
+                translationX(translX.toFloat())
+                rotation(angle)
+            }
+            .withEndAction {
+                destinationPointerIdlingResource.decrement()
+            }
     }
 
     /*
         function calculates compass view size for given screen size and direction pointer size
         it hides and shows views according to location availability
      */
-    private fun setupViews() {
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    fun setupViews() {
         val screenWidth = Resources.getSystem().displayMetrics.widthPixels
         val screenHeight = Resources.getSystem().displayMetrics.heightPixels - getStatusBarHeight()
         val arrowWidth = resources.getDimension(R.dimen.destination_pointer_size)
@@ -131,7 +151,7 @@ class CompassFragment : Fragment() {
         }
         val activity = requireActivity()
         if (activity.hasPermission(Manifest.permission.ACCESS_FINE_LOCATION) &&
-            activity.isGpsEnabled()
+            gpsEnabled
         ) {
             binding.layoutDestination.visibility = View.VISIBLE
             binding.btEnableGps.visibility = View.GONE
@@ -158,6 +178,9 @@ class CompassFragment : Fragment() {
                             .checkLocationSettings(
                                 builder.build()
                             )
+                        result.addOnSuccessListener {
+                            setupViews()
+                        }
                         // when permission.ACCESS_FINE_LOCATION granted, but location is disabled
                         // show location dialog
                         result.addOnFailureListener { exception ->

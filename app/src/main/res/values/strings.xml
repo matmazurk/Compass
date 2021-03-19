@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Compass</string>
-    <string name="distance_unknown">distance:unknown</string>
-    <string name="distance_meters">distance:%1$dm</string>
+    <string name="distance_unknown">distance unknown</string>
+    <string name="distance_meters">%1$d m</string>
     <string name="destination">destination</string>
     <string name="enable_gps">enable gps</string>
     <string name="permission_rejection_text">Location permission is needed for position tracking and distance calculations.</string>
