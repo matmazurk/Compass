@@ -98,7 +98,7 @@ class CoordsInputFragment : Fragment(), OnMapReadyCallback {
                         Snackbar.LENGTH_SHORT
                     )
                     .show()
-                findNavController().navigate(R.id.action_coordsInputFragment_to_compassFragment)
+                findNavController().popBackStack()
             }
         }
     }
